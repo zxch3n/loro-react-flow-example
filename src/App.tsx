@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import ReactFlow, {
   Background,
   useNodesState,
@@ -20,7 +20,7 @@ let i = 0;
 for (const node of initialNodes) {
   const map = loroNodes.insertContainer(i++, "Map");
   map.set("id", node.id);
-  const pos = map.insertContainer("position", "Map");
+  const pos = map.setContainer("position", "Map");
   pos.set("x", node.position.x);
   pos.set("y", node.position.y);
   map.set("data", node.data);
@@ -137,7 +137,7 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
     const version = Math.max(v[0], 1) - 1;
     doc.checkout(validFrontiersRef.current[version]);
     if (version == validFrontiersRef.current.length - 1) {
-      doc.checkout_to_latest();
+      doc.checkoutToLatest();
     }
     setNodes(loroNodes.getDeepValue());
     setEdges(loroEdges.getDeepValue());

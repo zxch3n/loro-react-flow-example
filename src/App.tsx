@@ -256,7 +256,7 @@ const App = () => {
             setConnected(v);
           }} style={{ cursor: "pointer" }} />
         </div>
-        <a alt="GitHub Repo Link" title="GitHub Repo for This Example" href="https://github.com/zxch3n/loro-react-flow-example" style={{
+        <a title="GitHub Repo for This Example" href="https://github.com/zxch3n/loro-react-flow-example" style={{
           fontSize: 32,
           lineHeight: "32px",
         }}>

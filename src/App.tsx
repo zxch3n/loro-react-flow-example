@@ -256,10 +256,15 @@ const App = () => {
             setConnected(v);
           }} style={{ cursor: "pointer" }} />
         </div>
-        <a title="GitHub Repo for This Example" href="https://github.com/zxch3n/loro-react-flow-example" style={{
-          fontSize: 32,
-          lineHeight: "32px",
-        }}>
+        <a
+          title="GitHub Repo for This Example"
+          href="https://github.com/zxch3n/loro-react-flow-example"
+          style={{
+            fontSize: 32,
+            lineHeight: "32px",
+          }}
+          target='_blank'
+        >
           <MdiGithub />
         </a>
         <div>
@@ -269,6 +274,7 @@ const App = () => {
               transform: "translate(-50%, 0%)",
             }}
             href="https://codesandbox.io/p/github/zxch3n/loro-react-flow-example/main?embed=1&file=%2Fsrc%2FApp.tsx"
+            target='_blank'
           >
             <PhCodesandboxLogo style={{ fontSize: 32 }} />
           </a>

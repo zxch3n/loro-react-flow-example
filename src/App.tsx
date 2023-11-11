@@ -227,7 +227,7 @@ const App = () => {
 
   return (
     <div style={{ display: "flex", width: "100%", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ display: "flex", paddingLeft: 32, flexDirection: "row", justifyContent: "flex-start", width: "100%", gap: 16, alignItems: "center" }}>
+      <div style={{ display: "flex", paddingLeft: 56, flexDirection: "row", justifyContent: "flex-start", width: "100%", gap: 16, alignItems: "center" }}>
         <div
           style={{
             display: "flex",

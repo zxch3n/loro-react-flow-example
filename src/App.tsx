@@ -15,6 +15,7 @@ import "./App.css"
 
 setPanicHook();
 const originDoc = new Loro<{ nodes: Node[], edges: Edge[] }>();
+originDoc.setPeerId(0n);
 const loroNodes = originDoc.getList("nodes");
 const loroEdges = originDoc.getList("edges");
 let i = 0;
@@ -103,6 +104,7 @@ function onEdgesUpdated(doc: Loro, loroEdges: LoroList, edges: Edge[]) {
 
 
 const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: Node[], edges: Edge[] }) => {
+  const [vv, setVV] = useState(() => JSON.stringify(Object.fromEntries(toReadableVersion(doc.version()))));
   const [nodes, setNodes, onNodesChange] = useNodesState(initNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initEdges);
   const validFrontiersRef = useRef<OpId[][]>([]);
@@ -114,11 +116,14 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
     setEdges(doc.getList("edges").getDeepValue());
     const lastVV: Map<bigint, number> = toReadableVersion(doc.version());
     const subId = doc.subscribe(e => {
-      if (e.fromCheckout) {
-        return;
-      }
-
       setTimeout(() => {
+        const v = toReadableVersion(doc.version());
+        const sv = JSON.stringify(Object.fromEntries(v));
+        setVV(sv)
+        if (e.fromCheckout) {
+          return;
+        }
+
         const newVV = toReadableVersion(doc.version());
         let changed = false;
         for (const [peer, counter] of newVV.entries()) {
@@ -155,9 +160,10 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
     const loroNodes = doc.getList("nodes");
     const loroEdges = doc.getList("edges");
     const version = Math.max(v[0], 1) - 1;
-    doc.checkout(validFrontiersRef.current[version]);
     if (version == validFrontiersRef.current.length - 1) {
       doc.checkoutToLatest();
+    } else {
+      doc.checkout(validFrontiersRef.current[version]);
     }
     setNodes(loroNodes.getDeepValue());
     setEdges(loroEdges.getDeepValue());
@@ -185,7 +191,7 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
     <div style={{ width: "100%", height: "100%", position: "relative", display: "flex", flexDirection: "column" }}>
       <div style={{ position: "absolute", fontSize: 18, top: 10, width: 360, maxWidth: "calc(100% - 48px)", left: "50%", zIndex: 2, transform: "translateX(-50%)" }} >
         <div style={{ marginBottom: 8 }}>
-          At version {version}. Max version {maxVersion}.
+          Version vector: {vv}
         </div>
         {
           maxVersion > 0 ?
@@ -218,7 +224,9 @@ const App = () => {
   const connectedRef = useRef(true);
   const [docA, docB] = useMemo(() => {
     const docA = new Loro();
+    docA.setPeerId(1n);
     const docB = new Loro();
+    docB.setPeerId(2n);
     docA.import(originDoc.exportSnapshot());
     docB.import(originDoc.exportSnapshot());
     docA.subscribe((e) => {

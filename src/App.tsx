@@ -9,7 +9,7 @@ import ReactFlow, {
 } from 'reactflow';
 import { nodes as initialNodes, edges as initialEdges } from './nodes-edges';
 import 'reactflow/dist/style.css';
-import { ContainerID, Loro, LoroList, OpId, setPanicHook, } from 'loro-crdt';
+import { ContainerID, Loro, LoroList, OpId, setPanicHook, toReadableVersion, } from 'loro-crdt';
 import { Slider, Switch } from '@radix-ui/themes';
 import "./App.css"
 
@@ -37,7 +37,7 @@ for (const edge of initialEdges) {
 
 originDoc.commit();
 
-const onNodesUpdated = (doc: Loro, loroNodes: LoroList, nodes: Node[], validFrontiers: OpId[][]) => {
+const onNodesUpdated = (doc: Loro, loroNodes: LoroList, nodes: Node[]) => {
   const n = loroNodes.length;
   let del = 0;
   let changed = false;
@@ -65,11 +65,10 @@ const onNodesUpdated = (doc: Loro, loroNodes: LoroList, nodes: Node[], validFron
 
   if (changed) {
     doc.commit();
-    validFrontiers.push(doc.frontiers());
   }
 }
 
-function onEdgesUpdated(doc: Loro, loroEdges: LoroList, edges: Edge[], validFrontiers: OpId[][]) {
+function onEdgesUpdated(doc: Loro, loroEdges: LoroList, edges: Edge[]) {
   if (loroEdges.length === edges.length) {
     return;
   }
@@ -99,7 +98,6 @@ function onEdgesUpdated(doc: Loro, loroEdges: LoroList, edges: Edge[], validFron
 
   if (changed) {
     doc.commit();
-    validFrontiers.push(doc.frontiers());
   }
 }
 
@@ -114,16 +112,37 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
   useEffect(() => {
     setNodes(doc.getList("nodes").getDeepValue());
     setEdges(doc.getList("edges").getDeepValue());
+    const lastVV: Map<bigint, number> = toReadableVersion(doc.version());
     const subId = doc.subscribe(e => {
-      if (!e.local) {
-        setNodes(doc.getList("nodes").getDeepValue());
-        setEdges(doc.getList("edges").getDeepValue());
-        if (validFrontiersRef.current[validFrontiersRef.current.length - 1][0] !== doc.frontiers()[0]) {
-          validFrontiersRef.current.push(doc.frontiers());
-          setMaxVersion(validFrontiersRef.current.length);
-          setVersion(validFrontiersRef.current.length);
-        }
+      if (e.fromCheckout) {
+        return;
       }
+
+      setTimeout(() => {
+        const newVV = toReadableVersion(doc.version());
+        let changed = false;
+        for (const [peer, counter] of newVV.entries()) {
+          const c = lastVV.get(peer) ?? 0;
+          if (c >= counter) {
+            continue;
+          }
+
+          for (let i = c; i < counter; i++) {
+            validFrontiersRef.current.push([{ peer, counter: i }]);
+            changed = true;
+          }
+          lastVV.set(peer, counter);
+        }
+
+        if (!e.local) {
+          setNodes(doc.getList("nodes").getDeepValue());
+          setEdges(doc.getList("edges").getDeepValue());
+          if (changed) {
+            setMaxVersion(validFrontiersRef.current.length);
+            setVersion(validFrontiersRef.current.length);
+          }
+        }
+      })
     });
     return () => {
       doc.unsubscribe(subId);
@@ -148,7 +167,7 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
   const eq = maxVersion == version;
   useEffect(() => {
     if (eq) {
-      onNodesUpdated(doc, doc.getList("nodes"), nodes, validFrontiersRef.current);
+      onNodesUpdated(doc, doc.getList("nodes"), nodes);
       setMaxVersion(validFrontiersRef.current.length);
       setVersion(validFrontiersRef.current.length);
     }
@@ -156,7 +175,7 @@ const Flow = ({ doc, nodes: initNodes, edges: initEdges }: { doc: Loro, nodes: N
 
   useEffect(() => {
     if (eq) {
-      onEdgesUpdated(doc, doc.getList("edges"), edges, validFrontiersRef.current);
+      onEdgesUpdated(doc, doc.getList("edges"), edges);
       setMaxVersion(validFrontiersRef.current.length);
       setVersion(validFrontiersRef.current.length);
     }

@@ -64,7 +64,8 @@ const onNodesUpdated = (doc: LoroDoc, loroNodes: LoroList, nodes: Node[]) => {
     }
     
     const value: Node = map.toJSON();
-    const posId = map.get('position');
+    const position = map.get('position') as LoroMap;
+    const posId = position.id
     const pos = doc.getMap(posId as ContainerID);
     if (value.position.x !== source.position.x || value.position.y !== source.position.y) {
       changed = true;

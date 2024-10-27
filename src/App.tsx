@@ -51,7 +51,8 @@ const onNodesUpdated = (doc: LoroDoc, loroNodes: LoroList, nodes: Node[]) => {
   let del = 0;
   let changed = false;
   for (let i = 0; i + del < n; i++) {
-    const nodeId = loroNodes.get(i - del);
+    const node = loroNodes.get(i - del) as LoroMap;
+    const nodeId = node.id;
     const map = doc.getMap(nodeId as ContainerID);
     const id = map.get('id') as string;
     const source = nodes.find(n => n.id === id);

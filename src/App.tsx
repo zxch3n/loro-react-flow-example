@@ -228,7 +228,9 @@ const Flow = ({doc, nodes: initNodes, edges: initEdges}: { doc: LoroDoc, nodes: 
           }}
           onEdgesChange={eq ? onEdgesChange : () => {
           }}
-          onConnect={(params) => setEdges((els) => addEdge(params, els))}
+          onConnect={(params) => {
+            setEdges((els) => addEdge(params, els))
+          }}
           fitViewOptions={{
             padding: 0.4,
           }}
@@ -316,8 +318,8 @@ const App = () => {
           </div>
           <Switch checked={connected} onCheckedChange={(v: boolean) => {
             if (v) {
-              docA.import(docB.exportFrom(docA.version()));
-              docB.import(docA.exportFrom(docB.version()));
+              docA.import(docB.export({mode: 'update', from: docA.version()}));
+              docB.import(docA.export({mode: 'update', from: docB.version()}));
             }
             connectedRef.current = v;
             setConnected(v);

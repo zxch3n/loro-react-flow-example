@@ -17,7 +17,7 @@ type LoroDocJsonStructure = LoroMap<{
   nodes: LoroList<
     LoroMap<Node>
   >;
-  notes: LoroList<
+  edges: LoroList<
     LoroMap<Edge>
   >;
 }>
